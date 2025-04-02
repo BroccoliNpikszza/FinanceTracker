@@ -12,9 +12,10 @@ import { Separator } from "./ui/separator";
 import { Badge } from "./ui/badge";
 
   interface Transaction{
-    _id: number;
-    status: string;
+    _id: string;
+    type: string;
     amount: string;
+    account:string;
     date:string
   }
 
@@ -37,7 +38,7 @@ import { Badge } from "./ui/badge";
         <TableHeader>
           <TableRow>
             <TableHead className="w-[100px]">Id</TableHead>
-            <TableHead>PaymentStatus</TableHead>
+            <TableHead>Type</TableHead>
             <TableHead>Date</TableHead>
             <TableHead className="text-right">Amount</TableHead>
           </TableRow>
@@ -46,7 +47,7 @@ import { Badge } from "./ui/badge";
           {transactions.map((transaction) => (
             <TableRow key={transaction._id}>
               <TableCell className="font-medium">{transaction._id}</TableCell>
-              <TableCell>{transaction.status}</TableCell>
+              <TableCell>{transaction.type}</TableCell>
               <TableCell>{transaction.date}</TableCell>
               <TableCell className="text-right">{transaction.amount}</TableCell>
             </TableRow>

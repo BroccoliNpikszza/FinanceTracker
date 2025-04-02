@@ -30,6 +30,7 @@ export function NavMain({
             >
               <IconCirclePlusFilled />
               <Link to="/transaction">New Transaction</Link>
+
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>

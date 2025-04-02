@@ -1,73 +1,3 @@
-// import { ChartAreaInteractive } from "@/components/chart-area-interactive"
-// import { SectionCards } from "@/components/section-cards"
-// import { CustomTable } from "@/components/custom-table"
-// import { AuthContext } from "@/context/AuthContext"
-// import { BASE_URL } from "@/utils/config"
-// import React, {useState, useContext, useEffect} from 'react';
-// import useFetch from "@/hooks/useFetch"
-// import { useParams } from "react-router-dom"
-
-
-// const transactions = [
-//     { id: 1, paymentStatus: "Completed", totalAmount: 50, paymentMethod: "Credit Card" },
-//     { id: 2, paymentStatus: "Pending", totalAmount: 75.5, paymentMethod: "PayPal" },
-// ]
-// export default function Home(){
-
-
-//   const fetchAccData = async ()=>{
-//     const {user} = useContext(AuthContext);
-//     if(!user || !user.token) return;
-//     try{
-//       const response = await fetch(`${BASE_URL}/getAccountInfo/${user.id}`,{
-//         headers: { Authorization: `Bearer ${user.token}`},
-//       });
-//       if(!response.ok){
-//         console.log("Error fetching data");
-//       }
-//       const data = await response.json();
-//       return data
-//       // console.log(data)
-//     }catch(error){
-//       console.log("error fetching: ",error);
-
-//     }
-
-//   }
-
-//   const data = 
-//     useEffect(()=>{
-//       fetchAccData();
-//     },[]);
-//   console.log(data);
-
-
-//   const{id} = useParams();
-//   console.log(id);
-//   // const user = useContext(AuthContext).user;
-//   // console.log(user);
-//   const {data: accountData} = useFetch(`${BASE_URL}/getAccountInfo/${id}`);
-//   console.log(accountData);
-
-
-//     return (
-//         <>
-//         <div className="flex flex-1 flex-col">
-//           <div className="@container/main flex flex-1 flex-col gap-2">
-//             <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
-//               <SectionCards balance={accData.balance} expense={accData.expense} savings={accData.savings} growthRate={accData.growthRate}/>
-//               <div className="px-4 lg:px-6">
-//                 <ChartAreaInteractive />
-//               </div>
-//               <CustomTable transactions={transactions} />
-//             </div>
-//           </div>
-//         </div> 
-//         </>
-//     )
-// }
-
-
 import { ChartAreaInteractive } from "@/components/chart-area-interactive"
 import { SectionCards } from "@/components/section-cards"
 import { CustomTable } from "@/components/custom-table"
@@ -76,13 +6,41 @@ import { BASE_URL } from "@/utils/config"
 import React, { useState, useContext, useEffect } from 'react';
 import transformTransactionData from "@/services/transformTransactionData"
 
+interface Props {
+    _id:string,
+    user:string,
+    type:string,
+    name:string,
+    balance:number,
+    transactions: {
+      date: string;
+      debited: number;
+      credited: number;
+    }[];
+  };
+
+  interface Transaction {
+    _id: string;
+    type: string;
+    amount: number;
+    account: string;
+    date: string; // Can be converted to `Date` if necessary
+}
+
+interface Account {
+    _id: string;
+    userId: string;
+    name: string;
+    type: string;
+    balance: number;
+    transactions: Transaction[];
+}
 
 
 export default function Home() {
   const { user } = useContext(AuthContext);
-  const [accData, setAccData] = useState(null);
-  const [transactions, setTransactions] = useState([]);
-  const [chartData, setChartData] = useState(Object)
+  const [accData, setAccData] = useState<Props[]|null>(null);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
 
   const data = {
     balance: 12192.12,
@@ -92,32 +50,58 @@ export default function Home() {
   }
 
 
+
   useEffect(() => {
     if (!user || !user.token) return;
-
-    const fetchAccData = async () => {
+  
+    const fetchAccounts = async () => {
       try {
-        const response = await fetch(`${BASE_URL}/getAccountInfo/${user.id}`, {
+        const response = await fetch(`${BASE_URL}/account/${user.id}`, {
           headers: { Authorization: `Bearer ${user.token}` },
         });
-
+  
         if (!response.ok) throw new Error("Error fetching data");
-
-        const data = await response.json();
-
-        setChartData(transformTransactionData(data.transactions))
-        console.log(data)
-        setAccData(data); // Store account data
-        setTransactions(data.transactions || []); // Store transactions if available
+  
+        let body = await response.json();
+        let accounts = body.data;
+  
+        if (!accounts || accounts.length === 0) {
+          console.warn("No accounts found in response");
+          return;
+        }
+  
+        let account1 = accounts[0];
+        if (account1?.transactions) {
+          setTransactions(account1.transactions);
+        } else {
+          console.warn("No transactions found in first account");
+        }
+  
+        // Transform transactions before setting state
+        setAccData(accounts);
+        accounts = accounts.map((account: Account) => ({
+          ...account,
+          transactions: transformTransactionData(account.transactions || []),
+        }));
+  
+        setAccData(accounts);
       } catch (error) {
         console.error("Error fetching account data:", error);
       }
     };
-
-    fetchAccData();
-    const intervalId = setInterval(fetchAccData, 10000);
-    return () => clearInterval(intervalId);
+  
+    fetchAccounts();
+    const intervalId = setInterval(fetchAccounts, 10000);
+    return () => {
+      clearInterval(intervalId);
+    };
   }, [user]);
+  
+  useEffect(() => {
+    console.log("Updated Transactions:", transactions);
+  }, [transactions]);
+
+
 
 
   return (
@@ -133,15 +117,9 @@ export default function Home() {
             />
           )}
           <div className="px-4 lg:px-6">
-            <ChartAreaInteractive accounts={[
-              {
-                accountName:"Checking",
-                chartData: chartData,
-
-              },
-            ]}/>
+            <ChartAreaInteractive accounts={accData||[]}/>
           </div>
-          <CustomTable transactions={transactions} />
+          <CustomTable transactions={transactions||[]} />
         </div>
       </div>
     </div>

@@ -1,5 +1,29 @@
 import mongoose from "mongoose";
 
+
+const transactionSchema = new mongoose.Schema({
+    user:{
+        type:String,
+        required: true
+    },
+    type:{
+        type:String,
+        required: true
+    },
+    account:{
+        type:String,
+        required:true
+    },
+    amount:{
+        type:String
+    },
+    date:{
+        type:Date,
+        required: true
+    },
+    
+})
+
 const accountSchema =  new mongoose.Schema({
     user :{
         type:String,
@@ -13,31 +37,18 @@ const accountSchema =  new mongoose.Schema({
         type:String,
         required: true,
     },
-    amount:{
+    balance:{
         type:Number,
         required: true
-    }
-
-})
-
-
-const transactionSchema = new mongoose.Schema({
-    user:{
-        type:String,
-        required: true
     },
-    status:{
-        type:String,
-        required: true
-    },
-    amount:{
-        type:String
-    },
-    date:{
-        type:Date,
-        required: true
+    transactions:{
+        type:[transactionSchema]
     }
 })
+
+
+
+
 
 const monthlyExpenseSchema = new mongoose.Schema({
     user:{

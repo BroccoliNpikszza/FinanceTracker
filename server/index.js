@@ -18,7 +18,7 @@ app.use(cors({
 }));
 
 app.use('/api/auth',authRoute);
-app.use('/api/getAccountInfo',getAccountInfoRoute);
+app.use('/api/account/',getAccountInfoRoute);
 app.use('/api/monthlyData/',montlyDataRoute);
 
 
