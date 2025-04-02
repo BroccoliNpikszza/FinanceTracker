@@ -7,13 +7,12 @@ import { ReactNode } from "react"
 
 interface Props{
   children: ReactNode;
+  pageTitle: string
 };
 
 
 
-const pageTitle = "Home";
-
-export default function Layout({children}:Props) {
+export default function Layout({children,pageTitle}:Props) {
   return (
     <SidebarProvider>
       <AppSidebar variant="inset" />

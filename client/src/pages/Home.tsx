@@ -36,18 +36,12 @@ interface Account {
     transactions: Transaction[];
 }
 
-
 export default function Home() {
   const { user } = useContext(AuthContext);
   const [accData, setAccData] = useState<Props[]|null>(null);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
 
-  const data = {
-    balance: 12192.12,
-    expense: 2192.12,
-    savings: 3192.12,
-    growthRate: 4,
-  }
+  
 
 
 
@@ -63,8 +57,8 @@ export default function Home() {
         if (!response.ok) throw new Error("Error fetching data");
   
         let body = await response.json();
-        let accounts = body.data;
-  
+        let accounts = body.data.accounts;
+
         if (!accounts || accounts.length === 0) {
           console.warn("No accounts found in response");
           return;
@@ -77,7 +71,6 @@ export default function Home() {
           console.warn("No transactions found in first account");
         }
   
-        // Transform transactions before setting state
         setAccData(accounts);
         accounts = accounts.map((account: Account) => ({
           ...account,
@@ -110,10 +103,6 @@ export default function Home() {
         <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
           {accData && (
             <SectionCards
-              balance={data.balance}
-              expense={data.expense}
-              savings={data.savings}
-              growthRate={data.growthRate}
             />
           )}
           <div className="px-4 lg:px-6">

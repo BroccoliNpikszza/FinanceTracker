@@ -58,7 +58,9 @@ export function Transaction({
       });
       if(!response.ok) throw new Error("Error fetching data");
       const body = await response.json();
-      const accounts = body.data;
+      console.log(body)
+      const accounts = body.data.accounts;
+      console.log(accounts)
       setUserAccounts(accounts);
       }catch(error){
         console.log(error);
@@ -97,6 +99,7 @@ export function Transaction({
       })
       if (response.ok) {
         setType("Credited");
+        alert("Transaction added");
       } else {
         const error = await response.json()
         console.log(error)

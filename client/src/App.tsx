@@ -12,10 +12,10 @@ export default function App() {
     <div>
       <main className="main-content">
         <Routes>
-          <Route path="/"element={<Layout><Home/></Layout>}/>
-          <Route path="/account"element={<Layout><Account/></Layout>}/>
-          <Route path="/notifications"element={<Layout><Notifications/></Layout>}/>
-          <Route path="/transaction"element={<Layout><Transaction/></Layout>}/>
+          <Route path="/"element={<Layout pageTitle="Home" ><Home/></Layout>}/>
+          <Route path="/account"element={<Layout pageTitle="Account"><Account/></Layout>}/>
+          <Route path="/notifications"element={<Layout pageTitle="Notifications"><Notifications/></Layout>}/>
+          <Route path="/transaction"element={<Layout pageTitle="Transaction"><Transaction/></Layout>}/>
         <Route path="/login" element={<LoginForm/>} />
         <Route path="/signup" element={<SignupForm/>} />
         </Routes>

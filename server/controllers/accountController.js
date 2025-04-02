@@ -1,29 +1,86 @@
 import { Account, Transaction, MonthlyData } from "../models/AccountSchema.js";
 import User from "../models/UserSchema.js";
 
-export const getUser = async  (req,res)=> {
+export const getUser = async (req, res) => {
     const id = req.params.id;
-    try{
+    try {
         const user = await User.findById(id);
-        if(user){
-            res.status(200).json({success:true, message:"Fetched user info",data:user});
+        if (user) {
+            res.status(200).json({ success: true, message: "Fetched user info", data: user });
         }
-        else{
-            res.status(400).json({success:false,message:"user not found"})
+        else {
+            res.status(400).json({ success: false, message: "user not found" })
         }
-    }catch(err){
-        res.status(500).json({success:false, message:"Failed to fetch user info"});
+    } catch (err) {
+        res.status(500).json({ success: false, message: "Failed to fetch user info" });
     }
-    
+
 }
 
 export const getAccountInfo = async (req, res) => {
     const id = req.params.id;
+    let thisMonthIncome = 0
+    let thisMonthExpense = 0
+    let prevMonthIncome = 0
+    let prevMonthExpense = 0
     try {
         const accounts = await Account.find({ user: id });
         if (accounts) {
-            // console.log(accounts)
-            res.status(200).json({ success: true, message: "Fetched account info.", data: accounts });
+            const currentDate = new Date();
+            const currentMonth = currentDate.getMonth();
+            const currentYear = currentDate.getFullYear();
+
+            accounts.forEach((account) => {
+                if (account.transactions && Array.isArray(account.transactions)) {
+                    account.transactions.forEach((transaction) => {
+                        const transactionDate = new Date(transaction.date);
+                        const transactionMonth = transactionDate.getMonth();
+                        const transactionYear = transactionDate.getFullYear();
+
+                        if (transactionYear === currentYear && transactionMonth === currentMonth) {
+                            if (transaction.type === "Credited") {
+                                thisMonthIncome += Number(transaction.amount);
+                            } else if (transaction.type === "Debited") {
+                                thisMonthExpense += Number(transaction.amount);
+                            }
+                        }
+
+                        if (transactionYear === currentYear && transactionMonth === currentMonth - 1) {
+                            if (transaction.type === "Credited") {
+                                prevMonthIncome += Number(transaction.amount);
+                            } else if (transaction.type === "Debited") {
+                                prevMonthExpense += Number(transaction.amount);
+                            }
+                        } else if (currentMonth === 0 && transactionYear === currentYear - 1 && transactionMonth === 11) {
+                            if (transaction.type === "Credited") {
+                                prevMonthIncome += Number(transaction.amount);
+                            } else if (transaction.type === "Debited") {
+                                prevMonthExpense += Number(transaction.amount);
+                            }
+                        }
+                    });
+                }
+            });
+
+            const growth = (thisMonthIncome-thisMonthExpense)/(prevMonthIncome-prevMonthExpense)*100
+
+
+
+
+            res.status(200).json({
+                 success: true,
+                  message: "Fetched account info.",
+                   data: {
+                    accounts, 
+                    headerData:{
+                    income:thisMonthIncome,
+                     expense:thisMonthExpense,
+                      savings:thisMonthIncome-thisMonthExpense,
+                      growth: Math.round(growth),
+                      incomeGrowth:Math.round(thisMonthIncome/prevMonthIncome*100),
+                      expenseGrowth:Math.round(thisMonthExpense/prevMonthExpense*100),
+                      savingsGrowth:Math.round((thisMonthIncome-thisMonthExpense)-(prevMonthIncome-prevMonthExpense)*100)
+                     } }});
         }
     } catch (err) {
         res.status(500).json({ success: false, message: "Failed to fetch account info." });
@@ -38,7 +95,7 @@ export const createAccount = async (req, res) => {
         return res.status(400).send("Form data invalid.")
     }
     try {
-        let account = await Account.findOne({ user: id , name})
+        let account = await Account.findOne({ user: id, name })
         if (account) {
             console.log(account)
             return res.status(400).send("Account already exists");
@@ -68,16 +125,16 @@ export const addTransaction = async (req, res) => {
 
 
     try {
-        let foundAccount = await Account.findOne({ user:id, name: account })
+        let foundAccount = await Account.findOne({ user: id, name: account })
         // console.log("_______account: ", foundAccount)
         if (foundAccount) {
             let transaction = await Transaction.create({ user: id, type, account, amount, date })
-            foundAccount = await Account.findOneAndUpdate({user:id, name: account }, { $push: { transactions:transaction } }, { new: true })
+            foundAccount = await Account.findOneAndUpdate({ user: id, name: account }, { $push: { transactions: transaction } }, { new: true })
             await foundAccount.save();
             return res.status(200).json({ success: true, message: "Transaction added." })
         }
-        else{
-            return res.status(400).json({success:false, message:"Account does not exist"})
+        else {
+            return res.status(400).json({ success: false, message: "Account does not exist" })
         }
     } catch (error) {
         console.log(error)
@@ -110,48 +167,48 @@ export const getAllTransactions = async (req, res) => {
     try {
         const id = req.params.id
         const transactions = await Transaction.find({ user: id })
-        return res.status(200).json({success:true, message:"Got all transactions.", data:transactions})
+        return res.status(200).json({ success: true, message: "Got all transactions.", data: transactions })
     } catch (error) {
         console.log(error)
 
     }
 }
 
-export const deleteTransaction = async(req,res)=>{
-    try{
+export const deleteTransaction = async (req, res) => {
+    try {
         const id = req.params.id
         const user = req.body.user
         const transaction = await Transaction.findByIdAndDelete(id)
-        if(transaction){
+        if (transaction) {
             const account = await Account.findOneAndUpdate(
-                {user, name:transaction.account},
-                {$pull:{transactions:{_id:transaction._id}}},{new:true})
-            return res.status(200).json({success:true,message:"Deleted "+id})
+                { user, name: transaction.account },
+                { $pull: { transactions: { _id: transaction._id } } }, { new: true })
+            return res.status(200).json({ success: true, message: "Deleted " + id })
         }
 
-    }catch(err){
+    } catch (err) {
         console.log(err)
     }
 }
 
-export const updateTransaction = async(req,res)=>{
-    try{
+export const updateTransaction = async (req, res) => {
+    try {
         const id = req.params.id
         console.log(id)
         const user = req.body.user
         const amount = req.body.amount
-        const transaction = await Transaction.findByIdAndUpdate(id,{amount:amount},{new:true})
+        const transaction = await Transaction.findByIdAndUpdate(id, { amount: amount }, { new: true })
         console.log(transaction)
-        if(transaction){
+        if (transaction) {
             let account = await Account.findOneAndUpdate(
-                {user, name:transaction.account, 'transactions._id':transaction._id},
-                {$set:{'transactions.$.amount':amount}},
-                {new:true})
+                { user, name: transaction.account, 'transactions._id': transaction._id },
+                { $set: { 'transactions.$.amount': amount } },
+                { new: true })
             console.log(account)
-            return res.status(200).json({success:true,message:"Deleted "+id})
+            return res.status(200).json({ success: true, message: "Deleted " + id })
         }
 
-    }catch(err){
+    } catch (err) {
         console.log(err)
     }
 }
