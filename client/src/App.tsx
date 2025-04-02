@@ -5,6 +5,7 @@ import Account from "./pages/Account"
 import {LoginForm} from "./pages/Login"
 import {SignupForm} from "./pages/Signup"
 import { Transaction } from "./pages/Transactions"
+import Notifications from "./pages/Notification"
 
 export default function App() {
   return (
@@ -13,6 +14,7 @@ export default function App() {
         <Routes>
           <Route path="/"element={<Layout><Home/></Layout>}/>
           <Route path="/account"element={<Layout><Account/></Layout>}/>
+          <Route path="/notifications"element={<Layout><Notifications/></Layout>}/>
           <Route path="/transaction"element={<Layout><Transaction/></Layout>}/>
         <Route path="/login" element={<LoginForm/>} />
         <Route path="/signup" element={<SignupForm/>} />

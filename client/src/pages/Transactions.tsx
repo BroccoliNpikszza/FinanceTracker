@@ -59,11 +59,7 @@ export function Transaction({
       if(!response.ok) throw new Error("Error fetching data");
       const body = await response.json();
       const accounts = body.data;
-      console.log(accounts)
-
       setUserAccounts(accounts);
-      console.log(accounts);
-
       }catch(error){
         console.log(error);
       }
@@ -86,7 +82,6 @@ export function Transaction({
       account:account,
       date: selectedDate
     }
-    console.log(formData)
 
     if (!user || !user.token) {
       return

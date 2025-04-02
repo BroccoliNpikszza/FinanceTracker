@@ -15,6 +15,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors({
     origin: true,
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
 }));
 
 app.use('/api/auth',authRoute);

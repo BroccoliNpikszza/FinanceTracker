@@ -90,11 +90,11 @@ export function NavUser({
               </DropdownMenuItem>
               <DropdownMenuItem>
                 <IconCreditCard />
-                <Link to="/billing" className="nav-link">Billing</Link>
+                <Link to="/billing" className="nav-link">Credit Cards</Link>
               </DropdownMenuItem>
               <DropdownMenuItem>
                 <IconNotification />
-                <Link to="/notification" className="nav-link">Notifications</Link>
+                <Link to="/notifications" className="nav-link">Notifications</Link>
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />

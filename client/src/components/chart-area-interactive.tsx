@@ -59,11 +59,11 @@ const chartConfig = {
   },
   debited: {
     label: "Debited",
-    color: "var(--primary)",
+    color: "var(--chart-2)",
   },
   credited: {
     label: "Credited",
-    color: "var(--primary)",
+    color: "var(--chart-1)",
   },
 };
 
@@ -86,7 +86,7 @@ export function ChartAreaInteractive({accounts} : {accounts:Props[]}) {
   const filteredData = Array.isArray(selectedAccountData)
     ? selectedAccountData.filter((item) => {
         const date = new Date(item.date);
-        const referenceDate = new Date("2024-06-30");
+        const referenceDate = new Date(Date.now());
         let daysToSubtract = 90;
         if (timeRange === "30d") {
           daysToSubtract = 30;

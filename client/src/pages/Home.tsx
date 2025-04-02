@@ -98,7 +98,7 @@ export default function Home() {
   }, [user]);
   
   useEffect(() => {
-    console.log("Updated Transactions:", transactions);
+    // console.log("Updated Transactions:", transactions);
   }, [transactions]);
 
 
@@ -119,7 +119,7 @@ export default function Home() {
           <div className="px-4 lg:px-6">
             <ChartAreaInteractive accounts={accData||[]}/>
           </div>
-          <CustomTable transactions={transactions||[]} />
+          <CustomTable/>
         </div>
       </div>
     </div>

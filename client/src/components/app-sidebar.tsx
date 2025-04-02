@@ -1,4 +1,7 @@
 import * as React from "react"
+import { useEffect,useState,useContext } from "react"
+import { AuthContext } from "@/context/AuthContext"
+import { BASE_URL } from "@/utils/config"
 import { Link } from "react-router-dom"
 import {
   IconCamera,
@@ -45,87 +48,84 @@ const data = {
       icon: IconDashboard,
     },
     {
-      title: "Analytics",
+      title: "Budget",
       url: "#",
       icon: IconChartBar,
     },
   ],
-  navClouds: [
-    {
-      title: "Capture",
-      icon: IconCamera,
-      isActive: true,
-      url: "#",
-      items: [
-        {
-          title: "Active Proposals",
-          url: "#",
-        },
-        {
-          title: "Archived",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Proposal",
-      icon: IconFileDescription,
-      url: "#",
-      items: [
-        {
-          title: "Active Proposals",
-          url: "#",
-        },
-        {
-          title: "Archived",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Prompts",
-      icon: IconFileAi,
-      url: "#",
-      items: [
-        {
-          title: "Active Proposals",
-          url: "#",
-        },
-        {
-          title: "Archived",
-          url: "#",
-        },
-      ],
-    },
-  ],
-  navSecondary: [
-    {
-      title: "Settings",
-      url: "#",
-      icon: IconSettings,
-    },
-    {
-      title: "Get Help",
-      url: "#",
-      icon: IconHelp,
-    },
+  // navSecondary: [
+  //   {
+  //     title: "Settings",
+  //     url: "#",
+  //     icon: IconSettings,
+  //   },
+  //   {
+  //     title: "Get Help",
+  //     url: "#",
+  //     icon: IconHelp,
+  //   },
     
-  ],
-  documents: [
-    {
-      name: "Your Data",
-      url: "#",
-      icon: IconDatabase,
-    },
-    {
-      name: "Reports",
-      url: "#",
-      icon: IconReport,
-    },
-  ],
+  // ],
+  // documents: [
+  //   {
+  //     name: "Your Data",
+  //     url: "#",
+  //     icon: IconDatabase,
+  //   },
+  //   {
+  //     name: "Reports",
+  //     url: "#",
+  //     icon: IconReport,
+  //   },
+  // ],
+}
+interface UserProp{
+  _id:string;
+  name:string;
+  email:string;
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  
+  const { user } = useContext(AuthContext);
+  const [userData, setUserData] = useState<UserProp|null>(null);
+
+  useEffect(() => {
+    if (!user || !user.token) return;
+  
+    const fetchUser = async () => {
+      try {
+        const response = await fetch(`${BASE_URL}/account/getUser/${user.id}`, {
+          headers: { Authorization: `Bearer ${user.token}` },
+        });
+  
+        if (!response.ok) throw new Error("Error fetching data");
+  
+        let body = await response.json();
+        let responseData:UserProp = body.data;
+  
+        if (!responseData ) {
+          console.warn("No user found in response");
+          return;
+        }
+
+        setUserData(responseData);
+      } catch (error) {
+        console.error("Error fetching account data:", error);
+      }
+    };
+  
+    fetchUser();
+    const intervalId = setInterval(fetchUser, 10000);
+    return () => {
+      clearInterval(intervalId);
+    };
+  }, [user]);
+  useEffect(() => {
+    // console.log("Updated userData:", userData);
+  }, [userData]);
+
+
   return (
     <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader>
@@ -145,11 +145,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
-        <NavDocuments items={data.documents} />
-        <NavSecondary items={data.navSecondary} className="mt-auto" />
+        {/* <NavDocuments items={data.documents} /> */}
+        {/* <NavSecondary items={data.navSecondary} className="mt-auto" /> */}
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser user={userData?{name:userData.name,email:userData.email,avatar:"/avatars/shadcn.jpg"}: { name: "Guest", email: "guest@example.com", avatar: "/avatars/shadcn.jpg"}} />
       </SidebarFooter>
     </Sidebar>
   )

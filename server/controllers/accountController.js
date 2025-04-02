@@ -1,12 +1,28 @@
 import { Account, Transaction, MonthlyData } from "../models/AccountSchema.js";
 import User from "../models/UserSchema.js";
 
+export const getUser = async  (req,res)=> {
+    const id = req.params.id;
+    try{
+        const user = await User.findById(id);
+        if(user){
+            res.status(200).json({success:true, message:"Fetched user info",data:user});
+        }
+        else{
+            res.status(400).json({success:false,message:"user not found"})
+        }
+    }catch(err){
+        res.status(500).json({success:false, message:"Failed to fetch user info"});
+    }
+    
+}
+
 export const getAccountInfo = async (req, res) => {
     const id = req.params.id;
     try {
         const accounts = await Account.find({ user: id });
         if (accounts) {
-            console.log(accounts)
+            // console.log(accounts)
             res.status(200).json({ success: true, message: "Fetched account info.", data: accounts });
         }
     } catch (err) {
@@ -16,7 +32,7 @@ export const getAccountInfo = async (req, res) => {
 
 export const createAccount = async (req, res) => {
     const { type, name, balance } = req.body
-    console.log(type, name, balance)
+    // console.log(type, name, balance)
     const id = req.params.id;
     if (!req.body) {
         return res.status(400).send("Form data invalid.")
@@ -52,11 +68,11 @@ export const addTransaction = async (req, res) => {
 
 
     try {
-        let foundAccount = await Account.findOne({ name: account })
-        console.log("_______account: ", foundAccount)
+        let foundAccount = await Account.findOne({ user:id, name: account })
+        // console.log("_______account: ", foundAccount)
         if (foundAccount) {
             let transaction = await Transaction.create({ user: id, type, account, amount, date })
-            foundAccount = await Account.findOneAndUpdate({ name: account }, { $push: { transactions:transaction } }, { new: true })
+            foundAccount = await Account.findOneAndUpdate({user:id, name: account }, { $push: { transactions:transaction } }, { new: true })
             await foundAccount.save();
             return res.status(200).json({ success: true, message: "Transaction added." })
         }
@@ -90,14 +106,52 @@ export const createMonthlyData = async (req, res) => {
     }
 }
 
-const getAllTransaction = async (req, res) => {
-    if (!req.body || !req.body.token) {
-        return res.status(400).send("Access denied")
-    }
+export const getAllTransactions = async (req, res) => {
     try {
+        const id = req.params.id
         const transactions = await Transaction.find({ user: id })
+        return res.status(200).json({success:true, message:"Got all transactions.", data:transactions})
     } catch (error) {
         console.log(error)
 
+    }
+}
+
+export const deleteTransaction = async(req,res)=>{
+    try{
+        const id = req.params.id
+        const user = req.body.user
+        const transaction = await Transaction.findByIdAndDelete(id)
+        if(transaction){
+            const account = await Account.findOneAndUpdate(
+                {user, name:transaction.account},
+                {$pull:{transactions:{_id:transaction._id}}},{new:true})
+            return res.status(200).json({success:true,message:"Deleted "+id})
+        }
+
+    }catch(err){
+        console.log(err)
+    }
+}
+
+export const updateTransaction = async(req,res)=>{
+    try{
+        const id = req.params.id
+        console.log(id)
+        const user = req.body.user
+        const amount = req.body.amount
+        const transaction = await Transaction.findByIdAndUpdate(id,{amount:amount},{new:true})
+        console.log(transaction)
+        if(transaction){
+            let account = await Account.findOneAndUpdate(
+                {user, name:transaction.account, 'transactions._id':transaction._id},
+                {$set:{'transactions.$.amount':amount}},
+                {new:true})
+            console.log(account)
+            return res.status(200).json({success:true,message:"Deleted "+id})
+        }
+
+    }catch(err){
+        console.log(err)
     }
 }
