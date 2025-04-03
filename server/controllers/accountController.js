@@ -1,4 +1,4 @@
-import { Account, Transaction, MonthlyData } from "../models/AccountSchema.js";
+import { Account, Transaction, MonthlyData, RecurringTransaction } from "../models/AccountSchema.js";
 import User from "../models/UserSchema.js";
 
 export const getUser = async (req, res) => {
@@ -18,6 +18,7 @@ export const getUser = async (req, res) => {
 }
 
 export const getAccountInfo = async (req, res) => {
+
     const id = req.params.id;
     let thisMonthIncome = 0
     let thisMonthExpense = 0
@@ -62,25 +63,27 @@ export const getAccountInfo = async (req, res) => {
                 }
             });
 
-            const growth = (thisMonthIncome-thisMonthExpense)/(prevMonthIncome-prevMonthExpense)*100
+            const growth = (thisMonthIncome - thisMonthExpense) / (prevMonthIncome - prevMonthExpense) * 100
 
 
 
 
             res.status(200).json({
-                 success: true,
-                  message: "Fetched account info.",
-                   data: {
-                    accounts, 
-                    headerData:{
-                    income:thisMonthIncome,
-                     expense:thisMonthExpense,
-                      savings:thisMonthIncome-thisMonthExpense,
-                      growth: Math.round(growth),
-                      incomeGrowth:Math.round(thisMonthIncome/prevMonthIncome*100),
-                      expenseGrowth:Math.round(thisMonthExpense/prevMonthExpense*100),
-                      savingsGrowth:Math.round((thisMonthIncome-thisMonthExpense)-(prevMonthIncome-prevMonthExpense)*100)
-                     } }});
+                success: true,
+                message: "Fetched account info.",
+                data: {
+                    accounts,
+                    headerData: {
+                        income: thisMonthIncome,
+                        expense: thisMonthExpense,
+                        savings: thisMonthIncome - thisMonthExpense,
+                        growth: Math.round(growth),
+                        incomeGrowth: Math.round(thisMonthIncome / prevMonthIncome * 100),
+                        expenseGrowth: Math.round(thisMonthExpense / prevMonthExpense * 100),
+                        savingsGrowth: Math.round((thisMonthIncome - thisMonthExpense) - (prevMonthIncome - prevMonthExpense) * 100)
+                    }
+                }
+            });
         }
     } catch (err) {
         res.status(500).json({ success: false, message: "Failed to fetch account info." });
@@ -107,7 +110,6 @@ export const createAccount = async (req, res) => {
         return res.status(500).json({ success: false, message: "Internal server error." })
     }
 }
-
 
 
 export const addTransaction = async (req, res) => {
@@ -210,5 +212,118 @@ export const updateTransaction = async (req, res) => {
 
     } catch (err) {
         console.log(err)
+    }
+}
+
+export const deleteAccount = async (req, res) => {
+    try {
+        const accountId = req.params.id
+        const user = req.body.user
+        const account = await Account.findByIdAndDelete(accountId)
+
+        if (account) {
+            const deletedTransaction = await Transaction.deleteMany(
+                {
+                    account: account.name,
+                    user: user
+                });
+
+            return res.status(200).json({
+                success: true,
+                message: "Deleted account with ID " + id,
+                deletedTransaction: deletedTransaction.deletedCount
+            });
+        } else {
+            return res.status(404).json({
+                success: false,
+                message: "Account not found"
+            });
+        }
+    } catch (err) {
+        console.log(err);
+        return res.status(500).json({
+            success: false,
+            message: "Internal Server Error"
+        });
+    }
+}
+export const addRecurringTransaction = async (req, res) => {
+    if (!req.body) {
+        return res.status(400).send("Form data invalid.")
+    }
+
+    console.log(req.body)
+    let { type, amount, account, date } = req.body
+    console.log(type, amount, account, date)
+    date = new Date(date)
+    const id = req.params.id
+
+    try {
+        let recurrTrans = await RecurringTransaction.create({ user: id, type, account, amount, date })
+        console.log(recurrTrans)
+
+        return res.status(200).json({ success: true, message: "Recurring transaction created successfully." })
+    } catch (error) {
+        console.log(error)
+    }
+
+}
+
+export const payRecurringTransaction = async (req, res) => {
+
+    const id = req.params.id;
+    const user = req.body.user;
+    const recurrTran = await RecurringTransaction.findById(id)
+    if (recurrTran) {
+        const date = new Date();
+
+
+        try {
+            let foundAccount = await Account.findOne({ user, name: recurrTran.account })
+            if (foundAccount) {
+
+                let transaction = await Transaction.create({ user, type:recurrTran.type, account:recurrTran.account, amount:recurrTran.amount, date })
+                foundAccount = await Account.findOneAndUpdate({ user, name: recurrTran.account }, { $push: { transactions: transaction } }, { new: true })
+                const done = await foundAccount.save();
+                console.log(done)
+                return res.status(200).json({ success: true, message: "Transaction added." })
+            }
+            else {
+                return res.status(400).json({ success: false, message: "Account does not exist" })
+            }
+        } catch (error) {
+            console.log(error)
+            return res.status(500).json({ success: false, message: "Internal server error." })
+        }
+    }
+
+}
+
+export const getAllRecurring = async (req, res) => {
+    try {
+        const id = req.params.id
+        const transactions = await RecurringTransaction.find({ user: id })
+        return res.status(200).json({ success: true, message: "Got all transactions.", data: transactions })
+    } catch (error) {
+        console.log(error)
+
+    }
+}
+
+export const deleteRecurring = async (req, res)=>{
+    try{
+        const id = req.params.id
+        const user = req.body.user;
+        if(!user){return res.status(400).send("Unathorized.")}
+        const recurring = await RecurringTransaction.findByIdAndDelete(id)
+        if(recurring){
+            console.log(recurring)
+            return res.status(200).json({success: true, mesage:"Deleted"})
+        }else{
+            return res.status(400).send("Not found.")
+        }
+
+    }catch(error){
+        console.log(error)
     }
 }

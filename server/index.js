@@ -6,6 +6,7 @@ import dotenv from "dotenv";
 import authRoute from "./routes/auth.js"
 import getAccountInfoRoute from "./routes/accountRoute.js"
 import montlyDataRoute from "./routes/monthlyDataRoute.js"
+import recurringRoue from "./routes/recurringRoute.js"
 
 
 dotenv.config();
@@ -21,6 +22,7 @@ app.use(cors({
 app.use('/api/auth',authRoute);
 app.use('/api/account/',getAccountInfoRoute);
 app.use('/api/monthlyData/',montlyDataRoute);
+app.use('/api/recurring/',recurringRoue);
 
 
 const uri = process.env.MONGO_URI;

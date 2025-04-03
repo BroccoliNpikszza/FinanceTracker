@@ -142,9 +142,9 @@ export function CustomTable() {
     }
     return transactions.reduce((sum, transaction) => {
       const amount = parseFloat(transaction.amount);
-      if (transaction.type === "Debited") {
+      if (transaction.type === "Credited") {
         return sum + amount;
-      } else if (transaction.type === "Credited") {
+      } else if (transaction.type === "Debited") {
         return sum - amount;
       } else {
         return sum;
@@ -170,6 +170,7 @@ export function CustomTable() {
             <TableHead>Account</TableHead>
             <TableHead>Update</TableHead>
             <TableHead>Delete</TableHead>
+            
           </TableRow>
         </TableHeader>
         <TableBody>

@@ -26,6 +26,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { AccountTable } from "@/components/account-table";
 
 
 export default function Account({
@@ -133,6 +134,7 @@ export default function Account({
           </form>
         </CardContent>
       </Card>
+      <AccountTable/>
     </div>
   )
 }

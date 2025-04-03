@@ -48,8 +48,8 @@ const data = {
       icon: IconDashboard,
     },
     {
-      title: "Budget",
-      url: "#",
+      title: "Financing",
+      url: "/recurr",
       icon: IconChartBar,
     },
   ],

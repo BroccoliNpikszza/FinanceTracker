@@ -72,6 +72,7 @@ export function SectionCards() {
   }, [user]);
 
   useEffect(() => {
+    console.log(userHeaderData)
   }, [userHeaderData]);
 
   return (
@@ -133,7 +134,7 @@ export function SectionCards() {
         <CardHeader>
           <CardDescription>Savings</CardDescription>
           <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            ${userHeaderData?.savings}
+            ${userHeaderData?.savings > 0 ? userHeaderData?.savings : 0}
           </CardTitle>
           <CardAction>
             <Badge variant="outline">
