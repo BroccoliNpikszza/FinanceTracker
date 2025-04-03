@@ -155,12 +155,14 @@ export function CustomTable() {
   return (
     <>
       <Separator className="my-4" />
-      <Badge className="badge-table" variant="secondary">
-        Transactions
-      </Badge>
       <Table>
-        <TableCaption>A list of recent transactions.</TableCaption>
+        <TableCaption>A list of all transactions.</TableCaption>
         <TableHeader>
+            <TableHead colSpan={5}>
+              <Badge variant={"outline"} className="text-[16px]">
+              Transactions total: ${total().toFixed(2)}
+              </Badge>
+               </TableHead>
           <TableRow>
 
             <TableHead>Date</TableHead>
@@ -216,10 +218,7 @@ export function CustomTable() {
           ))}
         </TableBody>
         <TableFooter>
-          <TableRow>
-            <TableCell colSpan={5}>Total</TableCell>
-            <TableCell className="text-right">{total().toFixed(2)}</TableCell>
-          </TableRow>
+
         </TableFooter>
       </Table>
     </>

@@ -59,6 +59,7 @@ export function SectionCards() {
         let headerData: headerData = body.data.headerData;
 
         setUserHeaderData(headerData);
+        
       } catch (error) {
         console.error("Error fetching account data:", error);
       }

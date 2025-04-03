@@ -79,8 +79,8 @@ export const getAccountInfo = async (req, res) => {
                         savings: thisMonthIncome - thisMonthExpense,
                         growth: Math.round(growth),
                         incomeGrowth: Math.round(thisMonthIncome / prevMonthIncome * 100),
-                        expenseGrowth: Math.round(thisMonthExpense / prevMonthExpense * 100),
-                        savingsGrowth: Math.round((thisMonthIncome - thisMonthExpense) - (prevMonthIncome - prevMonthExpense) * 100)
+                        expenseGrowth: Math.round(((thisMonthExpense-prevMonthExpense)/prevMonthExpense) * 100),
+                        savingsGrowth: Math.round((thisMonthIncome - thisMonthExpense) / (prevMonthIncome - prevMonthExpense) * 100)
                     }
                 }
             });
@@ -253,13 +253,13 @@ export const addRecurringTransaction = async (req, res) => {
     }
 
     console.log(req.body)
-    let { type, amount, account, date } = req.body
-    console.log(type, amount, account, date)
+    let { type, amount, account, date, frequency } = req.body
+    console.log(type, amount, account, date, frequency)
     date = new Date(date)
     const id = req.params.id
 
     try {
-        let recurrTrans = await RecurringTransaction.create({ user: id, type, account, amount, date })
+        let recurrTrans = await RecurringTransaction.create({ user: id, type, account, amount, date , frequency})
         console.log(recurrTrans)
 
         return res.status(200).json({ success: true, message: "Recurring transaction created successfully." })
@@ -286,6 +286,14 @@ export const payRecurringTransaction = async (req, res) => {
                 foundAccount = await Account.findOneAndUpdate({ user, name: recurrTran.account }, { $push: { transactions: transaction } }, { new: true })
                 const done = await foundAccount.save();
                 console.log(done)
+
+                const updateTran = await RecurringTransaction.findByIdAndUpdate(id, {paidFrequency:recurrTran.paidFrequency+1},{new:true})
+                console.log(typeof(updateTran.paidFrequency))
+                console.log(typeof(updateTran.frequency))
+                if(updateTran.frequency === updateTran.paidFrequency){
+                    await RecurringTransaction.findByIdAndDelete(id)
+                }
+
                 return res.status(200).json({ success: true, message: "Transaction added." })
             }
             else {

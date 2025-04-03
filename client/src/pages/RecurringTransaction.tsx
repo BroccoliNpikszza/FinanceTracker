@@ -43,6 +43,7 @@ export function RecurringTransaction({
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined)
   const [type, setType] = useState<HTMLInputElement|string>("Credited");
   const [account, setAccount] = useState<string|null>(null);
+  const frequencyRef = useRef<HTMLInputElement|null>(null)
   const amountRef = useRef<HTMLInputElement | null>(null)
   const { user } = useContext(AuthContext);
   const navigate = useNavigate()
@@ -76,15 +77,17 @@ export function RecurringTransaction({
 
   const handleFormSubmit = async (event: FormEvent) => {
     event.preventDefault();
-    if (!type || !amountRef.current || !selectedDate) {
+    if (!type || !amountRef.current || !selectedDate || !frequencyRef.current) {
       return
     }
     const formData = {
       type: type,
       amount: parseFloat(amountRef.current.value),
       account:account,
-      date: selectedDate
+      date: selectedDate,
+      frequency: frequencyRef.current.value,
     }
+    console.log(formData)
 
     if (!user || !user.token) {
       return
@@ -162,6 +165,19 @@ export function RecurringTransaction({
                   id="amount"
                   type="number"
                   placeholder="$100.00(Enter total amount)"
+                  className="w-full"
+                  required
+                />
+              </div>
+              </div>
+
+            <div className="flex flex-col gap-6">
+            <div className="grid gap-2">
+                <Input
+                  ref={frequencyRef}
+                  id="frequency"
+                  type="number"
+                  placeholder="10 (set frequency in terms of months)"
                   className="w-full"
                   required
                 />

@@ -44,6 +44,15 @@ const recurringTransactionSchema = new mongoose.Schema({
         type:Date,
         required: true
     },
+    frequency:{
+        type:Number,
+         default:0
+         
+    },
+    paidFrequency:{
+        type:Number,
+        default:0
+    }
     
 })
 
